@@ -46,12 +46,29 @@ def calculate_portfolio_value(transactions_df):
   portfolio_value = transactions_df["Value"].sum()
   return portfolio_value, transactions_df
 
+
 # Update prices on existing holdings
 if st.button("Update Prices"):
   portfolio_value, updated_transactions = calculate_portfolio_value(st.session_state.transactions.copy())
   st.session_state.transactions = updated_transactions
   st.session_state.portfolio_value = portfolio_value
 
+# Create a copy of the transactions dataframe
+transactions_df = st.session_state.transactions.copy()
+
+
+# Add delete button for each row
+if not transactions_df.empty:
+    # Create a list to store the indices of rows to be deleted
+    rows_to_delete = []
+
+    for index, row in transactions_df.iterrows():
+      if st.button("Delete", key=f"delete_{index}"):
+          rows_to_delete.append(index)
+
+    # Delete the selected rows and update the session state
+    if rows_to_delete:
+        st.session_state.transactions = st.session_state.transactions.drop(rows_to_delete).reset_index(drop=True)
 
 # Display the transactions table
 st.dataframe(st.session_state.transactions)
