@@ -53,25 +53,33 @@ if st.button("Update Prices"):
   st.session_state.transactions = updated_transactions
   st.session_state.portfolio_value = portfolio_value
 
-# Create a copy of the transactions dataframe
+
+# Create a copy of the transactions dataframe to add checkboxes
 transactions_df = st.session_state.transactions.copy()
+selected_rows = []
 
-
-# Add delete button for each row
 if not transactions_df.empty:
-    # Create a list to store the indices of rows to be deleted
-    rows_to_delete = []
 
+    # Add a selection checkbox to each row
+    transactions_df["Select"] = False
     for index, row in transactions_df.iterrows():
-      if st.button("Delete", key=f"delete_{index}"):
-          rows_to_delete.append(index)
+        checkbox = st.checkbox("", key=f"checkbox_{index}")
+        transactions_df.loc[index, "Select"] = checkbox
 
-    # Delete the selected rows and update the session state
-    if rows_to_delete:
-        st.session_state.transactions = st.session_state.transactions.drop(rows_to_delete).reset_index(drop=True)
+    # Function to delete selected rows
+    def delete_selected_rows():
+      global transactions_df
+      rows_to_delete = transactions_df[transactions_df["Select"] == True].index
+      st.session_state.transactions = st.session_state.transactions.drop(rows_to_delete).reset_index(drop=True)
+      transactions_df = st.session_state.transactions.copy()
+      st.experimental_rerun()
+
+    if st.button("Delete Selected"):
+        delete_selected_rows()
+    transactions_df = transactions_df.drop("Select", axis=1)
 
 # Display the transactions table
-st.dataframe(st.session_state.transactions)
+st.dataframe(transactions_df)
 
 # Display the total portfolio value
 if 'portfolio_value' in st.session_state:
